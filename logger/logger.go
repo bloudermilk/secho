@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"time"
-  "math"
 
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/drivers/spi"
@@ -30,9 +30,9 @@ type LoggerConfig struct {
 }
 
 type ChannelReading struct {
-	Channel ChannelConfig
+	Channel    ChannelConfig
 	RawReading int
-	Time    time.Time
+	Time       time.Time
 }
 
 func (loggerConfig LoggerConfig) PollingInterval() time.Duration {
@@ -40,7 +40,7 @@ func (loggerConfig LoggerConfig) PollingInterval() time.Duration {
 }
 
 func (channelReading ChannelReading) ScaledReading() float64 {
-  return float64(channelReading.RawReading) * (channelReading.Channel.Max / float64(math.Pow(2, ADCBits)))
+	return float64(channelReading.RawReading) * (channelReading.Channel.Max / float64(math.Pow(2, ADCBits)))
 }
 
 func MapChannelToReading(vs []ChannelConfig, f func(ChannelConfig) ChannelReading) []ChannelReading {
@@ -94,9 +94,9 @@ func main() {
 
 				check(err)
 
-        channelReading := ChannelReading{Channel: channel, RawReading: reading, Time: time.Now()}
+				channelReading := ChannelReading{Channel: channel, RawReading: reading, Time: time.Now()}
 
-        fmt.Printf("%s at %f\n", channelReading.Channel.Name, channelReading.ScaledReading())
+				fmt.Printf("%s at %f\n", channelReading.Channel.Name, channelReading.ScaledReading())
 
 				return channelReading
 			})
