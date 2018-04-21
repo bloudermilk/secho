@@ -14,9 +14,9 @@ import (
 )
 
 type ChannelConfig struct {
-  Channel int
-  Name    string
-  Type    string
+	Channel int
+	Name    string
+	Type    string
 	Max     float64
 }
 
@@ -28,21 +28,21 @@ type LoggerConfig struct {
 }
 
 type ChannelReading struct {
-  Channel ChannelConfig
-  Reading float64
-  Time    time.Time
+	Channel ChannelConfig
+	Reading float64
+	Time    time.Time
 }
 
 func (loggerConfig LoggerConfig) PollingInterval() time.Duration {
-  return time.Duration(float64(time.Second) / loggerConfig.Frequency)
+	return time.Duration(float64(time.Second) / loggerConfig.Frequency)
 }
 
 func MapChannelToReading(vs []ChannelConfig, f func(ChannelConfig) ChannelReading) []ChannelReading {
-    vsm := make([]ChannelReading, len(vs))
-    for i, v := range vs {
-        vsm[i] = f(v)
-    }
-    return vsm
+	vsm := make([]ChannelReading, len(vs))
+	for i, v := range vs {
+		vsm[i] = f(v)
+	}
+	return vsm
 }
 
 func check(err error) {
@@ -65,9 +65,9 @@ func loadConfig() LoggerConfig {
 	err = yaml.Unmarshal([]byte(data), &config)
 	check(err)
 
-  if (config.Frequency == 0) {
-    config.Frequency = 1
-  }
+	if config.Frequency == 0 {
+		config.Frequency = 1
+	}
 
 	fmt.Printf("Parsed config file successfully: %+v\n", config)
 
@@ -80,16 +80,16 @@ func main() {
 	adc := spi.NewMCP3008Driver(raspi)
 
 	work := func() {
-    fmt.Println("Polling every", config.PollingInterval())
+		fmt.Println("Polling every", config.PollingInterval())
 
 		gobot.Every(config.PollingInterval(), func() {
-      readings := MapChannelToReading(config.Channels, func (channel ChannelConfig) ChannelReading {
-        reading, err := adc.Read(channel.Channel)
+			readings := MapChannelToReading(config.Channels, func(channel ChannelConfig) ChannelReading {
+				reading, err := adc.Read(channel.Channel)
 
-  			check(err)
+				check(err)
 
-        return ChannelReading{Channel: channel, Reading: float64(reading), Time: time.Now()}
-      })
+				return ChannelReading{Channel: channel, Reading: float64(reading), Time: time.Now()}
+			})
 
 			fmt.Println("Readings: ", readings)
 		})
