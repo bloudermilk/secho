@@ -97,12 +97,12 @@ func main() {
 
 				sensorReading := SensorReading{Sensor: sensor, DigitalReading: reading, Time: time.Now()}
 
-				fmt.Printf("%s at %f\n", sensorReading.Sensor.Name, sensorReading.ScaledReading())
+				fmt.Printf("%s at %f%s\n", sensorReading.Sensor.Name, sensorReading.ScaledReading(), sensorReading.Sensor.Unit)
 
 				return sensorReading
 			})
 
-			fmt.Println("\nReadings: ", readings)
+			fmt.Printf("\nReadings: %+v\n\n", readings)
 		})
 	}
 

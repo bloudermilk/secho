@@ -2,17 +2,21 @@ vref: 3.3
 frequency: 0.5
 sensors:
   - channel: 0
-    name: Battery (V)
+    unit: V
+    name: Battery
     range: 12
 
   - channel: 1
-    name: Solar Output (A)
+    name: Solar Output
+    unit: A
     range: 20
 
   - channel: 2
-    name: DC Draw (A)
+    name: DC Draw
+    unit: A
     range: 22.5
 
   - channel: 3
-    name: AC/DC Inverter Draw (A)
+    name: AC/DC Inverter Draw
+    unit: A
     range: 20
