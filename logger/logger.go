@@ -16,35 +16,36 @@ import (
 
 const ADCBits = 10
 
-type ChannelConfig struct {
+type SensorConfig struct {
 	Channel int
 	Name    string
-	Max     float64
+	Unit    string
+	Range   float64 // In unit being measured
 }
 
 type LoggerConfig struct {
-	VRef      float64
+	VRef      float64 // In V
 	Bits      int
-	Frequency float64 // In Hertz
-	Channels  []ChannelConfig
+	Frequency float64 // In Hz
+	Sensors   []SensorConfig
 }
 
-type ChannelReading struct {
-	Channel    ChannelConfig
-	RawReading int
-	Time       time.Time
+type SensorReading struct {
+	Sensor         SensorConfig
+	DigitalReading int
+	Time           time.Time
 }
 
 func (loggerConfig LoggerConfig) PollingInterval() time.Duration {
 	return time.Duration(float64(time.Second) / loggerConfig.Frequency)
 }
 
-func (channelReading ChannelReading) ScaledReading() float64 {
-	return float64(channelReading.RawReading) * (channelReading.Channel.Max / float64(math.Pow(2, ADCBits)))
+func (sensorReading SensorReading) ScaledReading() float64 {
+	return float64(sensorReading.DigitalReading) * (sensorReading.Sensor.Range / float64(math.Pow(2, ADCBits)))
 }
 
-func MapChannelToReading(vs []ChannelConfig, f func(ChannelConfig) ChannelReading) []ChannelReading {
-	vsm := make([]ChannelReading, len(vs))
+func MapSensorToReading(vs []SensorConfig, f func(SensorConfig) SensorReading) []SensorReading {
+	vsm := make([]SensorReading, len(vs))
 	for i, v := range vs {
 		vsm[i] = f(v)
 	}
@@ -89,16 +90,16 @@ func main() {
 		fmt.Printf("Polling at %fHz (every %s)\n", config.Frequency, config.PollingInterval())
 
 		gobot.Every(config.PollingInterval(), func() {
-			readings := MapChannelToReading(config.Channels, func(channel ChannelConfig) ChannelReading {
-				reading, err := adc.Read(channel.Channel)
+			readings := MapSensorToReading(config.Sensors, func(sensor SensorConfig) SensorReading {
+				reading, err := adc.Read(sensor.Channel)
 
 				check(err)
 
-				channelReading := ChannelReading{Channel: channel, RawReading: reading, Time: time.Now()}
+				sensorReading := SensorReading{Sensor: sensor, DigitalReading: reading, Time: time.Now()}
 
-				fmt.Printf("%s at %f\n", channelReading.Channel.Name, channelReading.ScaledReading())
+				fmt.Printf("%s at %f\n", sensorReading.Sensor.Name, sensorReading.ScaledReading())
 
-				return channelReading
+				return sensorReading
 			})
 
 			fmt.Println("\nReadings: ", readings)
