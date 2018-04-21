@@ -24,7 +24,6 @@ type SensorConfig struct {
 }
 
 type LoggerConfig struct {
-	VRef      float64 // In V
 	Bits      int
 	Frequency float64 // In Hz
 	Sensors   []SensorConfig
