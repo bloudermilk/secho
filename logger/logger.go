@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"time"
+  "math"
 
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/drivers/spi"
@@ -13,10 +14,11 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const ADCBits = 10
+
 type ChannelConfig struct {
 	Channel int
 	Name    string
-	Type    string
 	Max     float64
 }
 
@@ -29,12 +31,16 @@ type LoggerConfig struct {
 
 type ChannelReading struct {
 	Channel ChannelConfig
-	Reading float64
+	RawReading int
 	Time    time.Time
 }
 
 func (loggerConfig LoggerConfig) PollingInterval() time.Duration {
 	return time.Duration(float64(time.Second) / loggerConfig.Frequency)
+}
+
+func (channelReading ChannelReading) ScaledReading() float64 {
+  return float64(channelReading.RawReading) * (channelReading.Channel.Max / float64(math.Pow(2, ADCBits)))
 }
 
 func MapChannelToReading(vs []ChannelConfig, f func(ChannelConfig) ChannelReading) []ChannelReading {
@@ -80,7 +86,7 @@ func main() {
 	adc := spi.NewMCP3008Driver(raspi)
 
 	work := func() {
-		fmt.Println("Polling every", config.PollingInterval())
+		fmt.Printf("Polling at %fHz (every %s)\n", config.Frequency, config.PollingInterval())
 
 		gobot.Every(config.PollingInterval(), func() {
 			readings := MapChannelToReading(config.Channels, func(channel ChannelConfig) ChannelReading {
@@ -88,10 +94,14 @@ func main() {
 
 				check(err)
 
-				return ChannelReading{Channel: channel, Reading: float64(reading), Time: time.Now()}
+        channelReading := ChannelReading{Channel: channel, RawReading: reading, Time: time.Now()}
+
+        fmt.Printf("%s at %f\n", channelReading.Channel.Name, channelReading.ScaledReading())
+
+				return channelReading
 			})
 
-			fmt.Println("Readings: ", readings)
+			fmt.Println("\nReadings: ", readings)
 		})
 	}
 

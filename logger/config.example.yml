@@ -1,23 +1,18 @@
 vref: 3.3
-bits: 10
 frequency: 0.5
 channels:
   - channel: 0
-    name: Battery Voltage
-    type: voltage
+    name: Battery (V)
     max: 12
 
   - channel: 1
-    name: Solar Output
-    type: current
+    name: Solar Output (A)
     max: 20
 
   - channel: 2
-    name: DC Bus
-    type: current
+    name: DC Draw (A)
     max: 22.5
 
   - channel: 3
-    name: AC/DC Inverter
-    type: current
+    name: AC/DC Inverter Draw (A)
     max: 20
