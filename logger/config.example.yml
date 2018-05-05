@@ -2,20 +2,20 @@ frequency: 0.5
 sensors:
   - channel: 0
     unit: V
-    name: Battery
-    range: 12
+    name: Battery Charge
+    limit: 12
 
   - channel: 1
-    name: Solar Output
+    name: Solar Supply
     unit: A
-    range: 20
+    limit: 20
 
   - channel: 2
-    name: DC Draw
+    name: DC Load
     unit: A
-    range: 22.5
+    limit: 22.5
 
   - channel: 3
-    name: AC/DC Inverter Draw
+    name: AC/DC Inverter Load
     unit: A
-    range: 20
+    limit: 20

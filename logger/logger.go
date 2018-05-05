@@ -20,11 +20,10 @@ type SensorConfig struct {
 	Channel int
 	Name    string
 	Unit    string
-	Range   float64 // In unit being measured
+	Limit   float64 // In unit being measured
 }
 
 type LoggerConfig struct {
-	Bits      int
 	Frequency float64 // In Hz
 	Sensors   []SensorConfig
 }
@@ -40,15 +39,15 @@ func (loggerConfig LoggerConfig) PollingInterval() time.Duration {
 }
 
 func (sensorReading SensorReading) ScaledReading() float64 {
-	return float64(sensorReading.DigitalReading) * (sensorReading.Sensor.Range / float64(math.Pow(2, ADCBits)))
+	return float64(sensorReading.DigitalReading) * (sensorReading.Sensor.Limit / float64(math.Pow(2, ADCBits)))
 }
 
-func MapSensorToReading(vs []SensorConfig, f func(SensorConfig) SensorReading) []SensorReading {
-	vsm := make([]SensorReading, len(vs))
-	for i, v := range vs {
-		vsm[i] = f(v)
+func ReadingsForSensors(sensors []SensorConfig, f func(SensorConfig) SensorReading) []SensorReading {
+	readings := make([]SensorReading, len(sensors))
+	for i, sensor := range sensors {
+		readings[i] = f(sensor)
 	}
-	return vsm
+	return readings
 }
 
 func check(err error) {
@@ -89,7 +88,7 @@ func main() {
 		fmt.Printf("Polling at %fHz (every %s)\n", config.Frequency, config.PollingInterval())
 
 		gobot.Every(config.PollingInterval(), func() {
-			readings := MapSensorToReading(config.Sensors, func(sensor SensorConfig) SensorReading {
+			readings := ReadingsForSensors(config.Sensors, func(sensor SensorConfig) SensorReading {
 				reading, err := adc.Read(sensor.Channel)
 
 				check(err)
