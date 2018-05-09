@@ -1,2 +1,4 @@
 github.com/pkg/errors
 github.com/go-ble/ble
+gobot.io/x/gobot
+gopkg.in/yaml.v2

@@ -1,0 +1,27 @@
+name: Solar Monitor
+frequency: 0.25
+sensors:
+  - channel: 0
+    unit: 0x2728
+    label: Battery Level
+    lower_limit: 9.0
+    upper_limit: 12.0
+    uuid: 00000001-3891-43e4-a77c-b26185385f29
+
+  - channel: 1
+    label: Solar Supply
+    unit: 0x2704
+    upper_limit: 20.0
+    uuid: 00000002-3891-43e4-a77c-b26185385f29
+
+  - channel: 2
+    label: DC Load
+    unit: 0x2704
+    upper_limit: 22.5
+    uuid: 00000003-3891-43e4-a77c-b26185385f29
+
+  - channel: 3
+    label: AC/DC Inverter Load
+    unit: 0x2704
+    upper_limit: 20.0
+    uuid: 00000004-3891-43e4-a77c-b26185385f29

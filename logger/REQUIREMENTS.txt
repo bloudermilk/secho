@@ -1,2 +1,0 @@
-gobot.io/x/gobot
-gopkg.in/yaml.v2
