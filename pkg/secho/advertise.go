@@ -19,7 +19,7 @@ var (
   CharacteristicPresentationFormatUUID = ble.UUID16(0x2904)
 )
 
-func Advertise(config SechoConfig) {
+func Advertise(config SechoConfig, fanout Fanout) {
   device, err := linux.NewDeviceWithName(config.Name)
 
   CheckError(err)
@@ -29,7 +29,9 @@ func Advertise(config SechoConfig) {
   sensorsService := ble.NewService(SensorServiceUUID)
 
   for _, sensor := range(config.Sensors) {
-    characteristic := NewSensorCharacteristic(sensor)
+    characteristic := NewSensorCharacteristic(sensor, func() *chan Reading {
+      return fanout.Subscribe()
+    })
 
     sensorsService.AddCharacteristic(characteristic)
   }
@@ -39,23 +41,35 @@ func Advertise(config SechoConfig) {
 
   fmt.Println("Advertising...")
 
-  ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), time.Hour))
+  // ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), time.Hour))
 
   chkErr(ble.AdvertiseNameAndServices(ctx, config.Name))
 }
 
-func NewSensorCharacteristic(sensor Sensor) *ble.Characteristic {
+func NewSensorCharacteristic(sensor Sensor, subscribe func() *chan Reading) *ble.Characteristic {
   characteristic := ble.NewCharacteristic(ble.UUID(sensor.UUID))
 
   characteristic.NewDescriptor(CharacteristicUserDescriptionUUID).SetValue([]byte(sensor.Label))
 
-  characteristic.HandleNotify(ble.NotifyHandlerFunc(func(_ ble.Request, notifier ble.Notifier) {
-    for {
-      reading := float64bytes(<-sensor.Readings)
-      notifier.Write(reading)
-    }
-  }));
+  characteristic.HandleRead(ble.ReadHandlerFunc(func(req ble.Request, rsp ble.ResponseWriter) {
+		fmt.Fprintf(rsp, "count: Read %d", 0)
+  }))
+  //
+  // characteristic.HandleNotify(ble.NotifyHandlerFunc(func(_ ble.Request, notifier ble.Notifier) {
+  //   channel := *subscribe()
+  //
+  //   for {
+  //     reading := <-channel
+  //     fmt.Println("got that reading")
+  //
+  //     if (reading.Sensor == sensor) {
+  //       update := float64bytes(reading.Value)
+  //       notifier.Write(update)
+  //     }
+  //   }
+  // }))
 
+  // TODO: Do format string
   // characteristic.NewDescriptor(ble.UUID16(CharacteristicPresentationFormatUUID)).SetValue([]byte(sensor.Label))
 
   return characteristic

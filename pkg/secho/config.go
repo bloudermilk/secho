@@ -19,8 +19,7 @@ type Sensor struct {
 	Unit    		 string
 	LowerLimit	 float64 // In Unit
 	UpperLimit   float64 // In Unit
-  UUID         string //`yaml:"uuid"`
-  Readings     chan float64
+  UUID         string
 }
 
 func LoadConfig(path string) SechoConfig {
@@ -34,10 +33,6 @@ func LoadConfig(path string) SechoConfig {
 	if config.Frequency == 0 {
 		config.Frequency = 1
 	}
-
-  for _, sensor := range(config.Sensors) {
-    sensor.Readings = make(chan float64)
-  }
 
 	return config
 }

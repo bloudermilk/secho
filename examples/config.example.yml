@@ -1,5 +1,5 @@
 name: Solar Monitor
-frequency: 0.25
+frequency: 1
 sensors:
   - channel: 0
     unit: 0x2728

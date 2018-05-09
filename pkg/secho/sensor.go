@@ -3,6 +3,7 @@ package secho
 import (
 	"fmt"
 	"math"
+	"time"
 
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/drivers/spi"
@@ -11,11 +12,17 @@ import (
 
 const ADCBits = 10
 
+type Reading struct {
+	Sensor Sensor
+	Value float64
+	Timestamp time.Time
+}
+
 func ScaleReading(sensor Sensor, reading int) float64 {
 	return float64(reading) * (sensor.UpperLimit / float64(math.Pow(2, ADCBits)))
 }
 
-func StartSensor(config SechoConfig) {
+func StartSensor(config SechoConfig, dest chan Reading) {
 	adaptor := raspi.NewAdaptor()
 	source := spi.NewMCP3008Driver(adaptor)
 
@@ -24,15 +31,14 @@ func StartSensor(config SechoConfig) {
 
 		gobot.Every(config.PollingInterval(), func() {
 			for _, sensor := range(config.Sensors) {
-				digitalReading, err := source.Read(sensor.Channel)
+				rawReading, err := source.Read(sensor.Channel)
+				scaledReading := ScaleReading(sensor, rawReading)
 
 				CheckError(err)
 
-				scaledReading := ScaleReading(sensor, digitalReading)
+				// fmt.Printf("Reading for %s: %f\n", sensor.Label, scaledReading)
 
-				fmt.Printf("Made a reading for '%s' - %f", sensor.Label, scaledReading)
-
-				sensor.Readings <- scaledReading
+				dest <- Reading{ Sensor: sensor, Value: scaledReading, Timestamp: time.Now() }
 			}
 		})
 	}

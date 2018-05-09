@@ -8,7 +8,10 @@ install:
 	scp secho ../../examples/config.example.yml pi@${REMOTE_IP}:~
 
 run:
-	ssh pi@${REMOTE_IP} sudo ./secho config.example.yml
+	ssh -t pi@${REMOTE_IP} "sudo ./secho config.example.yml"
 
 ssh:
 	ssh pi@${REMOTE_IP}
+
+all:
+	make && make install && make run
