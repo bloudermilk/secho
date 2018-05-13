@@ -29,7 +29,7 @@ func Advertise(config SechoConfig, fanout Fanout) {
   sensorsService := ble.NewService(SensorServiceUUID)
 
   for _, sensor := range(config.Sensors) {
-    characteristic := NewSensorCharacteristic(sensor, func() *chan Reading {
+    characteristic := NewSensorCharacteristic(sensor, func() chan Reading {
       return fanout.Subscribe()
     })
 
@@ -41,12 +41,12 @@ func Advertise(config SechoConfig, fanout Fanout) {
 
   fmt.Println("Advertising...")
 
-  // ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), time.Hour))
+  ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), time.Hour))
 
   chkErr(ble.AdvertiseNameAndServices(ctx, config.Name))
 }
 
-func NewSensorCharacteristic(sensor Sensor, subscribe func() *chan Reading) *ble.Characteristic {
+func NewSensorCharacteristic(sensor Sensor, subscribe func() chan Reading) *ble.Characteristic {
   characteristic := ble.NewCharacteristic(ble.UUID(sensor.UUID))
 
   characteristic.NewDescriptor(CharacteristicUserDescriptionUUID).SetValue([]byte(sensor.Label))
@@ -54,20 +54,20 @@ func NewSensorCharacteristic(sensor Sensor, subscribe func() *chan Reading) *ble
   characteristic.HandleRead(ble.ReadHandlerFunc(func(req ble.Request, rsp ble.ResponseWriter) {
 		fmt.Fprintf(rsp, "count: Read %d", 0)
   }))
-  //
-  // characteristic.HandleNotify(ble.NotifyHandlerFunc(func(_ ble.Request, notifier ble.Notifier) {
-  //   channel := *subscribe()
-  //
-  //   for {
-  //     reading := <-channel
-  //     fmt.Println("got that reading")
-  //
-  //     if (reading.Sensor == sensor) {
-  //       update := float64bytes(reading.Value)
-  //       notifier.Write(update)
-  //     }
-  //   }
-  // }))
+
+  characteristic.HandleNotify(ble.NotifyHandlerFunc(func(_ ble.Request, notifier ble.Notifier) {
+    channel := subscribe()
+
+    for {
+      reading := <-time.After(time.Second)
+      fmt.Printf("got that reading %+v\n", reading)
+
+      if (reading.Sensor == sensor) {
+        update := float64bytes(reading.Value)
+        notifier.Write(update)
+      }
+    }
+  }))
 
   // TODO: Do format string
   // characteristic.NewDescriptor(ble.UUID16(CharacteristicPresentationFormatUUID)).SetValue([]byte(sensor.Label))

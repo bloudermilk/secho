@@ -15,9 +15,9 @@ func main() {
 	fmt.Printf("\nLoaded config: %+v\n\n", config)
 
 	go fanout.DoFan()
-  go secho.StartSensor(config, source)
+  // go secho.StartSensor(config, source)
   go secho.Advertise(config, fanout)
-	go secho.Log(fanout.Subscribe())
+	// go secho.Log(fanout.Subscribe())
 
   select {}
 }
